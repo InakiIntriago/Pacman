@@ -1,7 +1,9 @@
 from random import choice
 from turtle import *
 from freegames import floor, vector
+import math
 
+options = 0 #Se define de manera global la variable options para poder utilizarla en el movimiento d todos los fantasmas
 state = {'score': 0}
 path = Turtle(visible=False)
 writer = Turtle(visible=False)
@@ -13,6 +15,7 @@ ghosts = [
     [vector(100, 160), vector(0, -5)],
     [vector(100, -160), vector(-5, 0)],
 ]
+#Se cambió el diseño del mapa
 tiles = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
@@ -72,8 +75,8 @@ def valid(point):
 
 def world():
     "Draw world using path."
-    bgcolor('dark green')
-    path.color('purple')
+    bgcolor('dark green') #Se cambió el color del tablero a verde oscuro
+    path.color('purple') # Se cambió el color de los caminos a morado
 
     for index in range(len(tiles)):
         tile = tiles[index]
@@ -115,15 +118,68 @@ def move():
         if valid(point + course):
             point.move(course)
         else:
-            options = [
+            """options = [ #Se pudo suprimir esta parte del código 
                 vector(5, 0),
                 vector(-5, 0),
                 vector(0, 5),
                 vector(0, -5),
-            ]
-            plan = choice(options)
-            course.x = plan.x
-            course.y = plan.y
+            ]"""
+     
+            
+            #Se agregó la funcionalidad para otpimziar la inteligencia fantasmal y se agregó un loop para implementar esta inteligencia en todos los fantasmas
+        for i in ghosts:
+          global options
+            #get pac offset
+          poff = offset(pacman) #0-posibles índices de las casillas de la lista
+          pcol = poff%20
+          pren = math.floor(poff/20)
+            
+            #get ghost offset
+          goff = offset(point)
+          gcol = goff%20
+          gren = math.floor(goff/20)
+
+
+          if(pcol < gcol and pren < gren):
+                #elegir arriba o a la izq
+              options = [
+                  vector(-5, 0),
+                  vector(0, 5),
+                ]
+              #print("Estoy yendo hacia arriba/izq")
+            
+          if(pcol > gcol and pren < gren):
+                #elegir arriba o a la der
+              options = [
+                  vector(5, 0),
+                  vector(0, 5),
+                ]
+              #print("Estoy yendo hacia arriba/der")
+            
+          if(pcol < gcol and pren > gren):
+                #elegir abajo o a la izq
+              options = [
+                  vector(-5, 0),
+                  vector(0, -5),
+                ]
+              #print("Estoy yendo hacia abajo/izq")
+            
+          if(pcol > gcol and pren > gren):
+                #elegir abajo o a la der
+              options = [
+                  vector(5, 0),
+                  vector(0, -5),
+                ]
+              #print("Estoy yendo hacia abajo/der")
+            
+
+            #escoger alguna opción
+          plan = choice(options)
+
+
+          course.x = plan.x
+          course.y = plan.y
+
 
         up()
         goto(point.x + 10, point.y + 10)
@@ -135,7 +191,7 @@ def move():
         if abs(pacman - point) < 20:
             return
 
-    ontimer(move, 10)
+    ontimer(move, 30) #Se modificó la velocidad de los fantasmas para que sean mas rapidos
 
 def change(x, y):
     "Change pacman aim if valid."
